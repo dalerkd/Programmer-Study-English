@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+# vs code
+
+.vs
+node_modules
