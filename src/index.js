@@ -13,6 +13,7 @@ class Words_lex {
   constructor() {
     this.m_map = new Map();
     this.m_arr = new Array();
+    this.m_result = { 'timestamp': Date.now(), 'data': {}}
   }
 
   add_word(arg) {
@@ -56,15 +57,20 @@ class Words_lex {
     this.m_arr = this.m_arr.filter(this.filterRule_no_repeat);
 
     this.m_arr.sort(this.compare("value"));
-    // for (let tmp of this.m_arr) {
-    // console.log(tmp.key + ' ' + tmp.value);
-    // }
+    for (let tmp of this.m_arr) {
+      //console.log(tmp.key + ' ' + tmp.value);
+      this.m_result['data'][tmp.key] = tmp.value;
+    }
+
+   
+    
+  }
+  Save_Result() {
+    this.explorer_words();
+    
     fs.writeFile(
-      __dirname + "/msdn_counter.json ",
-      JSON.stringify({
-        status: 0,
-        data: this.m_arr
-      }),
+      __dirname + "/msdn_counter.json",
+      JSON.stringify(this.m_result),
       function (err) {
         if (err) throw err;
         cl("写入完成");
@@ -80,7 +86,7 @@ class Words_lex {
       this.add_word(result[1].toLowerCase());
       result = re.exec(s);
     }
-    this.explorer_words();
+    
   }
 }
 
@@ -117,6 +123,19 @@ class Reptile {
   */
 
   crawling(webPath, callback_rule) {
+
+    let tmp_data = db.GetLocalBuffer(webPath)
+    if (null != tmp_data )
+    {
+      cl('缓存 √:'+webPath)
+      let $ = cheerio.load(tmp_data);
+      callback_rule($,0);
+      return;
+    }
+    else {
+      cl('Remote √:'+webPath)
+    }
+
     superagent
       .get(webPath)
       .timeout(1000 * 50 * 10)
@@ -131,32 +150,43 @@ class Reptile {
          * res.text 包含未解析前的响应内容
          * 我们通过cheerio的load方法解析整个文档，就是html页面所有内容，可以通过console.log($.html());在控制台查看
          */
+        
+        
+        db.SaveRecord(webPath,res.text)
         let $ = cheerio.load(res.text);
-        callback_rule($);
+        callback_rule($,500);
       });
   }
 }
 
-function callback_rule_msdn_vc_get_main($) {
+function callback_rule_msdn_vc_get_main($,recursiveGet_Limit_Time_ms) {
   wl.lex($("#main-column>#main").text());
-  RecursiveGet();
+  RecursiveGet(recursiveGet_Limit_Time_ms);
 }
 
-function RecursiveGet() {
-
+function RecursiveGet(recursiveGet_Limit_Time_ms) {
   setTimeout(() => {
     if (webAddressIndex++) cl("正在遍历第" + webAddressIndex + "个页面");
+    if (page_limit) {
+      if (webAddressIndex >= page_limit) {
+        wl.Save_Result();
+        return;
+      }
+    }
     if (webAddressIndex < webAddressList.length) {
       my_r.crawling(
         webAddressList[webAddressIndex],
         callback_rule_msdn_vc_get_main
       );
     }
+    else {
+      wl.Save_Result();
+      return;
+    }
   }, recursiveGet_Limit_Time_ms);
 
 }
 
-let recursiveGet_Limit_Time_ms = 500
 
 
 /*
@@ -293,19 +323,6 @@ class DataBaseSystem {
 
     this.m_local_database_record['data'][url] = { 'path': savePath, 'uuid': uuid, 'timestamp': timestamp }
 
-
-    fs.writeFile(
-      __dirname + "/msdn_counter2.json ",
-      JSON.stringify({
-        status: 0,
-        data: 1
-      }),
-      function (err) {
-        if (err) throw err;
-        cl("写入完成");
-      }
-    );
-
     try {
       fs.writeFileSync(this.m_record_full_path,
         JSON.stringify(
@@ -362,7 +379,16 @@ function Test_DataBaseSystem() {
 
 }
 
-Test_DataBaseSystem();
+//Test_DataBaseSystem();
+
+let webAddressList = new Array();
+let webAddressIndex = -1;
+let my_r = new Reptile();
+let db = new DataBaseSystem();
+let page_limit = 100000;
+
+new Reptile().crawling("https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019", callback_rule_msdn_vc_get_left_address);
+
 
 
 
