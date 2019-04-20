@@ -13,7 +13,9 @@ class Words_lex {
   constructor() {
     this.m_map = new Map();
     this.m_arr = new Array();
-    this.m_result = { 'timestamp': Date.now(), 'data': {}}
+    this.m_result = { 'timestamp': Date.now(), 'data': {} }
+    // 所有被处理的单词的总数量,包含重复出现的次数
+    this.m_allWordsNum = 0;
   }
 
   add_word(arg) {
@@ -60,6 +62,7 @@ class Words_lex {
     for (let tmp of this.m_arr) {
       //console.log(tmp.key + ' ' + tmp.value);
       this.m_result['data'][tmp.key] = tmp.value;
+      this.m_allWordsNum += tmp.value;
     }
 
    
@@ -67,7 +70,7 @@ class Words_lex {
   }
   Save_Result() {
     this.explorer_words();
-    
+    this.m_result['lexNumber']=this.m_allWordsNum
     fs.writeFile(
       __dirname + "/msdn_counter.json",
       JSON.stringify(this.m_result),
