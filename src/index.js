@@ -68,11 +68,15 @@ class Words_lex {
    
     
   }
-  Save_Result() {
+    /**
+   * 
+   * @param {自定义的目录,存储在某指定路径:存储目录,要求格式为:'abc/'} diyDirectory 
+   */
+  Save_Result(diyDirectory = '') {
     this.explorer_words();
     this.m_result['lexNumber']=this.m_allWordsNum
     fs.writeFile(
-      __dirname + "/msdn_counter.json",
+      __dirname + "/../data/"+diyDirectory+"counter.json",
       JSON.stringify(this.m_result),
       function (err) {
         if (err) throw err;
@@ -124,15 +128,23 @@ class Reptile {
   
   
   */
+  constructor(words_lex,diyDirectory,dataBase,page_limit) {
+    this.m_words_lex = words_lex;
+    this.m_diyDirectory = diyDirectory;
+    this.m_dataBase = dataBase;
+    this.webAddressList = new Array();
+    this.webAddressIndex = -1;
+    this.page_limit = page_limit;
+
+  }
 
   crawling(webPath, callback_rule) {
-
-    let tmp_data = db.GetLocalBuffer(webPath)
+    let tmp_data = this.m_dataBase.GetLocalBuffer(webPath)
     if (null != tmp_data )
     {
       cl('缓存 √:'+webPath)
       let $ = cheerio.load(tmp_data);
-      callback_rule($,0);
+      callback_rule.call(this,$,0);
       return;
     }
     else {
@@ -155,86 +167,95 @@ class Reptile {
          */
         
         
-        db.SaveRecord(webPath,res.text)
+        this.m_dataBase.SaveRecord(webPath,res.text)
         let $ = cheerio.load(res.text);
-        callback_rule($,500);
+        callback_rule.call(this,$,500);
       });
   }
-}
-
-function callback_rule_msdn_vc_get_main($,recursiveGet_Limit_Time_ms) {
-  wl.lex($("#main-column>#main").text());
-  RecursiveGet(recursiveGet_Limit_Time_ms);
-}
-
-function RecursiveGet(recursiveGet_Limit_Time_ms) {
-  setTimeout(() => {
-    if (webAddressIndex++) cl("正在遍历第" + webAddressIndex + "个页面");
-    if (page_limit) {
-      if (webAddressIndex >= page_limit) {
-        wl.Save_Result();
+  RecursiveGet(recursiveGet_Limit_Time_ms) {
+    let _this = this;
+    setTimeout(() => {
+      if (_this.webAddressIndex++) cl("正在遍历第" + _this.webAddressIndex + "个页面");
+      if (_this.page_limit) {
+        if (_this.webAddressIndex >= _this.page_limit) {
+          _this.m_words_lex.Save_Result(_this.m_diyDirectory);
+          return;
+        }
+      }
+      if (_this.webAddressIndex < _this.webAddressList.length) {
+        _this.crawling(
+          _this.webAddressList[_this.webAddressIndex],
+          _this.callback_rule_msdn_vc_get_main
+        );
+      }
+      else {
+        _this.m_words_lex.Save_Result(_this.m_diyDirectory);
         return;
       }
-    }
-    if (webAddressIndex < webAddressList.length) {
-      my_r.crawling(
-        webAddressList[webAddressIndex],
-        callback_rule_msdn_vc_get_main
-      );
-    }
-    else {
-      wl.Save_Result();
-      return;
-    }
-  }, recursiveGet_Limit_Time_ms);
+    }, recursiveGet_Limit_Time_ms);
+  
+  }
+
 
 }
 
 
 
-/*
-从左侧获取地址列表信息
-*/
-function callback_rule_msdn_vc_get_left_address($) {
-  $("nav")
-    .find("li[role=treeitem]")
-    .find("a")
-    .each(function (i, elem) {
-      // cl('内容:',$(elem).text())
-      // cl('地址:',$(elem).attr('href'))
 
-      let url = $(elem).attr("href");
-      let text = $(elem).text();
-      result.push({
-        serviceName: text,
-        webAddress: url
-      });
 
-      if (i < 100) {
-        cl(url);
-      }
-      if (i == 100) {
-        cl("more");
-      }
 
-      webAddressList.push(url);
-    });
-  cl(
+class Reptile_MSDN extends Reptile {
+  /**
+   * 
+   * @param {lex对象} words_lex 
+   * @param {数据存储的目录串要求:'abc/'的形式} diyDirectory 
+   * @param {本地缓存系统DataBaseSystem} dataBase
+   */
+  
+  constructor(words_lex,diyDirectory,dataBase,page_limit,StartHomePage) {
+    super(words_lex, diyDirectory, dataBase,page_limit);
+    this.start_home_page_url = StartHomePage;
+  }
+  startWork() {
+    this.crawling(this.start_home_page_url, this.callback_rule_msdn_vc_get_left_address);
+  }
+  callback_rule_msdn_vc_get_main($,recursiveGet_Limit_Time_ms) {
+    this.m_words_lex.lex($("#main-column>#main").text());
+    this.RecursiveGet(recursiveGet_Limit_Time_ms);
+  }
+  /*
+  从左侧获取地址列表信息
+  */
+  callback_rule_msdn_vc_get_left_address($) {
     $("nav")
       .find("li[role=treeitem]")
-      .find("a").length
-  );
+      .find("a")
+      .each((i, elem)=>{
 
-  RecursiveGet();
-}
+        let url = $(elem).attr("href");
+        let text = $(elem).text();
+        result.push({
+          serviceName: text,
+          webAddress: url
+        });
 
-function crawlingFromFile() {
-  fs.readFile(__dirname + "\\msdn.html", function (err, buffer) {
-    if (err) throw err;
-    cl(buffer);
-    let $ = cheerio.load(buffer);
-    callback_rule_msdn_vc_get_left_address($);
-  });
+        if (i < 100) {
+          cl(url);
+        }
+        if (i == 100) {
+          cl("more");
+        }
+        this.webAddressList.push(url);
+      });
+    cl(
+      $("nav")
+        .find("li[role=treeitem]")
+        .find("a").length
+    );
+
+    this.RecursiveGet();
+  }
+
 }
 
 /*
@@ -388,11 +409,14 @@ function Test_DataBaseSystem() {
 
 //Test_DataBaseSystem();
 
-let webAddressList = new Array();
-let webAddressIndex = -1;
-let my_r = new Reptile();
-let db = new DataBaseSystem('msdn_cpp/');
+
+
+let myPath = 'msdn_cpp/'
 let page_limit = 10;
 
-new Reptile().crawling("https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019", callback_rule_msdn_vc_get_left_address);
+let msdn = new Reptile_MSDN(new Words_lex(), myPath, new DataBaseSystem(myPath),page_limit,
+"https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019"
+)
+msdn.startWork();
+
 
