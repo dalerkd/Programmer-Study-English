@@ -1,3 +1,5 @@
+'use strict';
+
 const superagent = require("superagent");
 const cheerio = require("cheerio");
 const fs = require("fs");
@@ -173,23 +175,22 @@ class Reptile {
       });
   }
   RecursiveGet(recursiveGet_Limit_Time_ms) {
-    let _this = this;
     setTimeout(() => {
-      if (_this.webAddressIndex++) cl("正在遍历第" + _this.webAddressIndex + "个页面");
-      if (_this.page_limit) {
-        if (_this.webAddressIndex >= _this.page_limit) {
-          _this.m_words_lex.Save_Result(_this.m_diyDirectory);
+      if (this.webAddressIndex++) cl("正在遍历第" + this.webAddressIndex + "个页面");
+      if (this.page_limit) {
+        if (this.webAddressIndex >= this.page_limit) {
+          this.m_words_lex.Save_Result(this.m_diyDirectory);
           return;
         }
       }
-      if (_this.webAddressIndex < _this.webAddressList.length) {
-        _this.crawling(
-          _this.webAddressList[_this.webAddressIndex],
-          _this.callback_rule_msdn_vc_get_main
+      if (this.webAddressIndex < this.webAddressList.length) {
+        this.crawling(
+          this.webAddressList[this.webAddressIndex],
+          this.callback_rule_msdn_vc_get_main
         );
       }
       else {
-        _this.m_words_lex.Save_Result(_this.m_diyDirectory);
+        this.m_words_lex.Save_Result(this.m_diyDirectory);
         return;
       }
     }, recursiveGet_Limit_Time_ms);
