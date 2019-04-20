@@ -259,9 +259,14 @@ crawlingFromFile();
  * 
  */
 class DataBaseSystem {
-  constructor() {
+  /**
+   * 
+   * @param {自定义的目录,存储在某指定路径:存储目录,要求格式为:'abc/'} diyDirectory 
+   */
+  constructor(diyDirectory = '') {
+    this.diyDirectory = diyDirectory;
     this.m_data_home_path = __dirname + '/../data/'
-    this.m_record_full_path = this.m_data_home_path + 'BufferSystemDataBase.json'
+    this.m_record_full_path = this.m_data_home_path + this.diyDirectory+ 'BufferSystemDataBase.json'
     //加载数据记录
     this.LoadRecord();
     //初始化共用时间戳
@@ -309,14 +314,13 @@ class DataBaseSystem {
    * 
    * @param {本地缓存文件对应的url} url 
    * @param {需要缓存到本地文件的buffer} dataBuffer
-   * @param {存储在某指定路径} homePath 
    * @param {存储文件的扩展名,默认为.html} extension_name 
    * @param {时间锉,可选,默认为同一批使用同一时间戳} timestamp 
    */
-  SaveRecord(url, dataBuffer, homePath = "", extension_name = ".html", timestamp = "") {
+  SaveRecord(url, dataBuffer, extension_name = ".html", timestamp = "") {
     let dbpath = this.m_data_home_path + this.m_database_name
     let uuid = get_uuid();
-    let savePath = this.m_data_home_path + homePath + uuid + extension_name;
+    let savePath = this.m_data_home_path + this.diyDirectory + uuid + extension_name;
 
     fs.writeFileSync(savePath, dataBuffer);
     
@@ -355,7 +359,7 @@ function Test_DataBaseSystem() {
    * 2. 测试 由 索引URL 获取文件目录 并从文件中 获取数据
    */
   {
-    let db = new DataBaseSystem()
+    let db = new DataBaseSystem('msdn_cpp/')
     cl(db.GetLocalBuffer('http://google.com') == null)
     db.SaveRecord('http://baidu.com', '我是百度')
     if (db.GetLocalBuffer('http://baidu.com') != '我是百度') {
@@ -368,7 +372,7 @@ function Test_DataBaseSystem() {
     cl(db.GetLocalBuffer('http://g.cn') == null)
   }
   {
-    let db = new DataBaseSystem()
+    let db = new DataBaseSystem('msdn_cpp/')
     if (db.GetLocalBuffer('http://baidu.com') != '我是百度') {
       throw ('test:error1')
     }
@@ -387,42 +391,8 @@ function Test_DataBaseSystem() {
 let webAddressList = new Array();
 let webAddressIndex = -1;
 let my_r = new Reptile();
-let db = new DataBaseSystem();
-let page_limit = 100000;
+let db = new DataBaseSystem('msdn_cpp/');
+let page_limit = 10;
 
 new Reptile().crawling("https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019", callback_rule_msdn_vc_get_left_address);
 
-
-
-
-// let reptileUrl = 'https://www.taobao.com'
-// superagent.get(reptileUrl).end(function (err, res) {
-// // 抛错拦截
-// if (err) {
-// throw Error(err)
-// }
-// /**
-// * res.text 包含未解析前的响应内容
-// * 我们通过cheerio的load方法解析整个文档，就是html页面所有内容，可以通过console.log($.html());在控制台查看
-// */
-// let $ = cheerio.load(res.text)
-// $('.service-bd li a').each(function (i, elem) {
-// // cl('内容:',$(elem).text())
-// // cl('地址:',$(elem).attr('href'))
-// result.push({
-// serviceName: $(elem).text(),
-// webAddress: $(elem).attr('href')
-// })
-// })
-// fs.writeFile(
-// __dirname + 'taobao_class.json',
-// JSON.stringify({
-// status: 0,
-// data: result
-// }),
-// function (err) {
-// if (err) throw err
-// cl('写入完成')
-// }
-// )
-// })
