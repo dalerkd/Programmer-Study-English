@@ -30,7 +30,7 @@ class Reptile {
       this.webAddressList = new Array();
       this.webAddressIndex = -1;
       this.page_limit = page_limit;
-  
+      this.require_page_time_ms= 500;
     }
   
     crawling(webPath, callback_rule) {
@@ -63,10 +63,10 @@ class Reptile {
           
           that.m_dataBase.SaveRecord(webPath,res.text)
           let $ = cheerio.load(res.text);
-          callback_rule.call(that,$,500);
+          callback_rule.call(that,$,that.require_page_time_ms);
         });
     }
-    RecursiveGet(recursiveGet_Limit_Time_ms) {
+    RecursiveGet(recursiveGet_Limit_Time_ms,callback_rule_get_text) {
       setTimeout(() => {
         if (this.webAddressIndex++) cl("正在遍历第" + this.webAddressIndex + "个页面");
         if (this.page_limit) {
@@ -78,7 +78,7 @@ class Reptile {
         if (this.webAddressIndex < this.webAddressList.length) {
           this.crawling(
             this.webAddressList[this.webAddressIndex],
-            this.callback_rule_msdn_vc_get_main
+            callback_rule_get_text
           );
         }
         else {
