@@ -60,7 +60,7 @@ class Reptile_MSDN extends Reptile {
 
 function rep_msdn(){
   let myPath = 'msdn_cpp/'
-  let page_limit = 10;
+  let page_limit = 10000;
   
   let msdn = new Reptile_MSDN(new Words_lex(), myPath, new DataBaseSystem(myPath),page_limit,
   "https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019"
@@ -127,7 +127,8 @@ function rep_mdn_learn(){
   )
   mdn.startWork();
 }
-rep_mdn_learn();
+//rep_mdn_learn();
+rep_msdn();
 
 
 

@@ -23,7 +23,19 @@ class Words_lex {
 
     for (const tmp in result) {
       const element = result[tmp];
-      const wait_decide = element.toLowerCase()
+      let wait_decide = element.toLowerCase()
+     /**
+      * 将复数 转换为 单数形式.
+      * 不能: es,ss
+      * >4 防止this或太短的内容被规则伤到
+      */
+      if (wait_decide.length > 4) {
+        if (wait_decide[wait_decide.length - 1] == 's'
+          && wait_decide[wait_decide.length - 2] != 'e'
+        && wait_decide[wait_decide.length-2]!='s') {
+          wait_decide = wait_decide.substr(0,wait_decide.length-1)
+        }
+      }      
       {
         let value = 1;
         if (this.m_map.has(wait_decide)) {
