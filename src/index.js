@@ -127,8 +127,8 @@ function rep_mdn_learn(){
   )
   mdn.startWork();
 }
-//rep_mdn_learn();
-rep_msdn();
+rep_mdn_learn();
+//rep_msdn();
 
 
 
