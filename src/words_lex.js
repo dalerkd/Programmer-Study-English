@@ -12,7 +12,8 @@ class Words_lex {
   constructor() {
     this.m_map = new Map();
     this.m_arr = new Array();
-    this.m_result = { 'timestamp': Date.now(), 'data': {} }
+    let myDate = new Date();
+    this.m_result = { 'timestamp': myDate.toLocaleString(), 'data': {} }
     // 所有被处理的单词的总数量,包含重复出现的次数
     this.m_allWordsNum = 0;
   }

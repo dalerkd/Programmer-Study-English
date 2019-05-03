@@ -41,7 +41,8 @@ function findDuplicates(firstFileName, secondFileName, saveFileName, firstOnlyFi
 
     // sort
     sameData.sort(compare("value"))
-    let m_result = { 'comment': '合并处理', 'timestamp': Date.now(), 'data': {} }
+    let myDate = new Date()
+    let m_result = { 'comment': '合并处理', 'timestamp': myDate.toLocaleString(), 'data': {} }
     for (let tmp of sameData) {
         //console.log(tmp.key + ' ' + tmp.value);
         m_result['data'][tmp.key] = tmp.value;
@@ -158,8 +159,8 @@ class RFC {
 }
 
 
-// findDuplicates('./data/msdn_cpp/counter.json', './data/MDN_Learn/counter.json',
-//     './data/common.json', './data/firstOnly.json', './data/secondOnly.json')
+findDuplicates('./data/msdn_cpp/counter.json', './data/MDN_Learn/counter.json',
+    './data/common.json', './data/firstOnly.json', './data/secondOnly.json')
 
 
 cl(new RFC('./save_document/mdn_counter.json').how_words_be_probability(99))
