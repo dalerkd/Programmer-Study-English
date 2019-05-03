@@ -41,16 +41,15 @@ function findDuplicates(firstFileName, secondFileName, saveFileName, firstOnlyFi
 
     // sort
     sameData.sort(compare("value"))
-    let m_result = { 'timestamp': Date.now(), 'data': {} }
+    let m_result = { 'comment': '合并处理', 'timestamp': Date.now(), 'data': {} }
     for (let tmp of sameData) {
         //console.log(tmp.key + ' ' + tmp.value);
         m_result['data'][tmp.key] = tmp.value;
     }
 
-    fs.writeFile(saveFileName, JSON.stringify({
-        comment: '合并处理',
-        data: m_result
-    }), (err) => {
+    fs.writeFile(saveFileName, JSON.stringify(
+        m_result
+    ), (err) => {
         if (err) {
             throw (err)
         }
@@ -79,22 +78,89 @@ function findDuplicates(firstFileName, secondFileName, saveFileName, firstOnlyFi
 
 }
 
-findDuplicates('./data/msdn_cpp/counter.json', './data/MDN_Learn/counter.json',
-    './data/common.json', './data/firstOnly.json', './data/secondOnly.json')
+
+/**
+ * 对特定文件进行频率分析:
+ * 找出 达到 某概率 需要多少单词
+ *      达到 指定单词 量 对应的概率是多少
+ */
+class RFC {
+    constructor(filePath) {
+        this.filePath = filePath;
+        this.data = JSON.parse(fs.readFileSync(filePath));
+    }
+    /**
+     * 获取全部单词的数量(含重复)
+     */
+    get_all_words_number() {
+        let num = 0;
+        let tmp = this.data['data'];
+        for (const key in tmp) {
+            const element = tmp[key];
+            num += element;
+        }
+        return num;
+    }
+    /**
+     * 指定数量的单词会到达多少概率
+     * @argument {words_num}
+     */
+    words_to_robability(words_num) {
+        let now_num = 0;
+        let need_words = 0;
+        let all_words = this.get_all_words_number();
+        let tmp_probability = 0;
+        let tmp = this.data['data'];
+
+        for (const key in tmp) {
+            const element = tmp[key];
+            need_words++;
+            now_num += element;
+            if (need_words == words_num) {
+                tmp_probability = now_num / all_words
+                break;
+            }
 
 
+        }
+        return {
+            real_probability: tmp_probability,
+            need_words: need_words
+        };
+    }
+    /**
+     * 多少单词能达到这个概率?
+     * @argument {probability} 100-0
+     */
+    how_words_be_probability(probability) {
+        let now_num = 0;
+        let need_words = 0;
+        let all_words = this.get_all_words_number();
+        let tmp_probability = 0;
+        let tmp = this.data['data'];
 
-// fs.readFile(__dirname + '/from100RFC.json', (err, str) => {
-//     if (err) {
-//         cl(err)
-//         throw (err)
-//     }
-//     let obj = JSON.parse(str);
+        for (const key in tmp) {
+            const element = tmp[key];
+            need_words++;
+            now_num += element;
+            tmp_probability = now_num / all_words
+            if (tmp_probability * 100 > probability) {
+                break;
+            }
 
-//     let result = 0;
-//     Object.keys(obj).forEach(function (key) {
+        }
+        return {
+            real_probability: tmp_probability,
+            need_words: need_words
+        };
+    }
 
-//         result += obj[key];
-//     });
-//     cl(result)
-// })
+}
+
+
+// findDuplicates('./data/msdn_cpp/counter.json', './data/MDN_Learn/counter.json',
+//     './data/common.json', './data/firstOnly.json', './data/secondOnly.json')
+
+
+cl(new RFC('./save_document/mdn_counter.json').how_words_be_probability(99))
+cl(new RFC('./save_document/mdn_counter.json').words_to_robability(1000))
