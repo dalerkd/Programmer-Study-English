@@ -7,18 +7,28 @@ let cl = console.log
  * @param {对比的文件名} secondFileName
  * @param {结果存储的文件名} saveFileName 
  */
+
+function compare(property) {
+    return function (obj1, obj2) {
+        var value1 = obj1[property];
+        var value2 = obj2[property];
+        return value2 - value1; // 降序
+    };
+}
+
 function findDuplicates(firstFileName, secondFileName, saveFileName, firstOnlyFileName, secondOnlyFileName) {
     let firstJSON = JSON.parse(fs.readFileSync(firstFileName));
     let secondJSON = JSON.parse(fs.readFileSync(secondFileName));
     let firstData = firstJSON['data'];
     let secondData = secondJSON['data'];
-    let sameData = new Object();
+    let sameData = new Array();
     let firstOnlyData = new Object();//1号文件中独有的单词
     let secondOnlyData = new Object();//2号文件中独有的单词
     for (const key in firstData) {
         if (secondData[key] != undefined) {
             //meet Duplicates
-            sameData[key] = firstData[key] + secondData[key]
+            let value = firstData[key] + secondData[key]
+            sameData.push({ key, value })
         } else {
             firstOnlyData[key] = firstData[key];
         }
@@ -29,9 +39,17 @@ function findDuplicates(firstFileName, secondFileName, saveFileName, firstOnlyFi
         }
     }
 
+    // sort
+    sameData.sort(compare("value"))
+    let m_result = { 'timestamp': Date.now(), 'data': {} }
+    for (let tmp of sameData) {
+        //console.log(tmp.key + ' ' + tmp.value);
+        m_result['data'][tmp.key] = tmp.value;
+    }
+
     fs.writeFile(saveFileName, JSON.stringify({
         comment: '合并处理',
-        data: sameData
+        data: m_result
     }), (err) => {
         if (err) {
             throw (err)

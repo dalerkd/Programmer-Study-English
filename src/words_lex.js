@@ -16,7 +16,7 @@ class Words_lex {
     // 所有被处理的单词的总数量,包含重复出现的次数
     this.m_allWordsNum = 0;
   }
-
+  //private:
   add_word(arg) {
     //切分单词中可能的词组      
     let result = new words_split(arg).start_split();
@@ -45,7 +45,7 @@ class Words_lex {
       }
     }
   }
-
+  //private:
   compare(property) {
     return function (obj1, obj2) {
       var value1 = obj1[property];
@@ -53,7 +53,7 @@ class Words_lex {
       return value2 - value1; // 降序
     };
   }
-
+  //private:
   /*
   repeat letter is unvalid
   */
@@ -67,7 +67,7 @@ class Words_lex {
   filterRule_no_only(obj) {
     return obj["key"].length != 1;
   }
-
+  //private:
   explorer_words() {
     for (let [key, value] of this.m_map) {
       this.m_arr.push({
@@ -85,6 +85,7 @@ class Words_lex {
       this.m_allWordsNum += tmp.value;
     }
   }
+  //public:
   /**
  * 
  * @param {自定义的目录,存储在某指定路径:存储目录,要求格式为:'abc/'} diyDirectory 
@@ -101,7 +102,7 @@ class Words_lex {
       }
     );
   }
-
+  //public:
   lex(s) {
     let re = /([a-zA-Z]+)/g;
     let result = re.exec(s);
