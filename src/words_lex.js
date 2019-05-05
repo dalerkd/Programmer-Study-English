@@ -88,6 +88,15 @@ class Words_lex {
   }
   //public:
   /**
+   * @returns {结果结构}
+   */
+  Get_Result() {
+    this.explorer_words();
+    this.m_result['lexNumber'] = this.m_allWordsNum
+    return this.m_result;
+  }
+  //public:
+  /**
  * 
  * @param {自定义的目录,存储在某指定路径:存储目录,要求格式为:'abc/'} diyDirectory 
  */
