@@ -109,6 +109,7 @@ class Words_lex {
       function (err) {
         if (err) throw err;
         cl("写入完成");
+        console.timeEnd();
       }
     );
   }

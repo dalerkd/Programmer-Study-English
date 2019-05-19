@@ -4485,8 +4485,9 @@ function ana_string(str) {
         "hit": hit, "unknow": unknow
     }
 }
-cl(ana_string("The open nature of the World Wide Web presents incredible opportunities for people who want to create websites or online applications. To take full advantage of the web's capabilities, you need to know how to use them. Explore the links below to learn more about various web technologies."))
-//execute('E:/Git Project/Programmer-Study-English/data/Ana_TXT/tina_get_english.txt')
+//cl(ana_string("The open nature of the World Wide Web presents incredible opportunities for people who want to create websites or online applications. To take full advantage of the web's capabilities, you need to know how to use them. Explore the links below to learn more about various web technologies."))
+console.time();
+execute('E:/Git Project/Programmer-Study-English/data/Ana_TXT/tina_get_english.txt')
 
 
 
