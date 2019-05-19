@@ -6,8 +6,8 @@ const rep_mdn_learn = require('./rep_mdn_learn')
 let cl = console.log;
 
 
-//rep_mdn_learn();
-rep_msdn();
+rep_mdn_learn();
+//rep_msdn();
 
 
 
