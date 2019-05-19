@@ -52,11 +52,11 @@ class String_Lex {
      */
     constructor(saveFullPath, fromHaveDataFileFullPath = "", limit = 5) {
         //主要是限制数据
-        this.myPath = saveFullPath;
+        this.myFullPath = saveFullPath;
         this.m_fileData = JSON.parse(fs.readFileSync('./save_document/common.json'));
         this.limit = limit;
         let date = new Date().toLocaleDateString();
-        this.m_decideData = {//JSON.parse(fs.readFileSync("./data/" + this.myPath + "_ExampleSentences.json"))
+        this.m_decideData = {//JSON.parse(fs.readFileSync(this.myFullPath)
             "comment": "临时处理",
             "timestamp": date,
             "data": {
@@ -246,7 +246,7 @@ function rep_msdn_example_sentences() {
     msdn.startWork();
 }
 console.time();
-rep_msdn_example_sentences();
+//rep_msdn_example_sentences();
 
 /**
  * 例句文件转字典
@@ -293,6 +293,6 @@ function Example_Sentences_2Dict(myPath, outputPath) {
     fs.writeFileSync(outputFullPath, result);
     cl("生成字典完成,路径:" + outputFullPath)
 }
-//Example_Sentences_2Dict('msdn_cpp/', 'msdn_cpp/');
+Example_Sentences_2Dict('msdn_cpp/', 'msdn_cpp/');
 
 module.exports = rep_msdn_example_sentences
