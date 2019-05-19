@@ -6,7 +6,16 @@
  * 将会为各单词表 生成一个 例句表
  * 2019年5月19日星期日 0:01
  */
-
+/**
+ * Bug list:
+1. 句子以:结束
+可能意味着 regex的错误.
+2. 最终输出结果 第2名 总是变化
+可能意味者 排序存在问题
+3. 最终输出结果 3163个小于原内容共同单词数
+可能匹配算法有问题,或者部分单词本身的问题.
+或者是拆分单词导致原单词数量增加的问题.
+ */
 
 //const Words_lex = require('./words_lex')
 const Reptile = require('./reptile')
@@ -215,6 +224,53 @@ function rep_msdn_example_sentences() {
     msdn.startWork();
 }
 console.time();
-rep_msdn_example_sentences();
+//rep_msdn_example_sentences();
+
+/**
+ * 例句文件转字典
+ * @param {目录名} myPath 
+ * @param {输出路径} outPut 
+ * 
+ * format:
+ * 
+word
+eg:
+<p>例1</p>
+<p>例2</p>
+</>
+
+title="具体数字" 鼠标上去会显示该内容
+初步采取下面的形式
+<font size=5>the</font>&nbsp1K
+<br>
+eg:
+<p class="msdn_p">例1</p>
+<p class="msdn_p">例2</p>
+</>
+ */
+function Example_Sentences_2Dict(myPath, outputPath) {
+    let inputFileFullPath = "./data/" + myPath + "_ExampleSentences.json"
+    const obj = JSON.parse(fs.readFileSync(inputFileFullPath))
+    // 遍历
+    let result = ""
+    for (let key in obj['data']) {
+        result += key + "\r\n<font size=5>" + key + "</font>\r\n<br>\r\neg:\r\n";
+        for (let _key in obj['data'][key]) {
+            let value = obj['data'][key][_key]
+            // 加粗 关键字
+            let re = new RegExp("\\b" + key + "[s]?\\b", 'g')
+            let tmpValue = value.replace(re, "<b>" + key + "</b>")
+            result += "<p class=\"msdn_p\">" + (parseInt(_key) + 1) + ". "
+            result += tmpValue
+            result += "</p>\r\n"
+        }
+        result += "</>"
+        result += "\r\n"
+    }
+    let outputFullPath = "./data/" + outputPath + "_ExampleSentencesDict.txt";
+    fs.writeFileSync(outputFullPath, result);
+    cl("生成字典完成,路径:" + outputFullPath)
+}
+Example_Sentences_2Dict('msdn_cpp/', 'msdn_cpp/');
 
 module.exports = rep_msdn_example_sentences
