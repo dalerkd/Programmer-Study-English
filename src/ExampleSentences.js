@@ -47,25 +47,17 @@ let cl = console.log;
 
 class String_Lex {
     /**
-     * 
+     * @param {数据来自已经存在的文件路径 ./data/abc/_Example.json} fromHaveDataFileFullPath
      * @param {限制最多为每个单词获取例句的数量} limit 
      */
-    constructor(myPath, limit = 5) {
+    constructor(saveFullPath, fromHaveDataFileFullPath = "", limit = 5) {
         //主要是限制数据
-        this.myPath = myPath;
+        this.myPath = saveFullPath;
         this.m_fileData = JSON.parse(fs.readFileSync('./save_document/common.json'));
         this.limit = limit;
         let date = new Date().toLocaleDateString();
-        this.m_decideData = {
+        this.m_decideData = {//JSON.parse(fs.readFileSync("./data/" + this.myPath + "_ExampleSentences.json"))
             "comment": "临时处理",
-            "timestamp": date,
-            "data": {
-                // "Hi": ["Hi,my name.", "Hi,girl!", "Say Hi"]
-
-            }
-        }
-        this.m_result = {
-            "comment": "单词句子",
             "timestamp": date,
             "data": {
                 // "Hi": ["Hi,my name.", "Hi,girl!", "Say Hi"]
@@ -78,10 +70,28 @@ class String_Lex {
         }
 
 
+        this.m_result = {
+            "comment": "单词句子",
+            "timestamp": date,
+            "data": {
+                // "Hi": ["Hi,my name.", "Hi,girl!", "Say Hi"]
+
+            }
+        }
+
+
+
 
     }
     Save_Result() {
 
+        //将没有达到limit的单词 例句也写入结果
+        this.limit = 1;
+        let tempData = this.m_decideData['data'];
+        for (const key in tempData) {
+            this.finished(key)
+        }
+        /////////////////////////
         let sameData = new Array();
         let firstData = this.m_result['data'];
         for (const key in firstData) {
@@ -108,7 +118,7 @@ class String_Lex {
         }
 
         fs.writeFile(
-            "./data/" + this.myPath + "_ExampleSentences.json",
+            "./data/_ExampleSentences.json",
             JSON.stringify(this.m_result),
             (err) => {
                 if (err) {
@@ -120,12 +130,20 @@ class String_Lex {
             }
         )
     }
+    //去重
+    unique(array) {
+        var res = array.filter(function (item, index, array) {
+            return array.indexOf(item) === index;
+        })
+        return res;
+    }
     add_word(word, string) {
         this.m_decideData['data'][word].push(string)
     }
     //负责检查 和 迁移数据 到结果
     //@return: true 已经达到足够的次数
     finished(word) {
+        this.m_decideData['data'][word] = this.unique(this.m_decideData['data'][word])
         if (this.limit <= this.m_decideData['data'][word].length) {
             this.m_result['data'][word] = [].concat(this.m_decideData['data'][word])
             delete this.m_decideData['data'][word]
@@ -142,6 +160,9 @@ class String_Lex {
         //循环 this.m_decideData
         for (const key in this.m_decideData['data']) {
             let word = key;
+            if (this.finished(word)) {
+                continue;
+            }
             let reStringL = `((?:[a-zA-Z0-9\\+\\(\\),][a-zA-Z0-9\\t\\f\\v \\+\\(\\),\\-\\+\\\\\\&_:"'/]*)?\\b`
             let reStringR = `[s]?\\b[a-zA-Z0-9\\t\\f\\v \\+\\(\\),\\-\\+\\\\\\&_:"'/]*(?:.|\\!|\\r\\n))`
             let re = new RegExp(reStringL + word + reStringR, 'g')
@@ -218,13 +239,14 @@ function rep_msdn_example_sentences() {
     let myPath = 'msdn_cpp/'
     let page_limit = 10000;
 
-    let msdn = new Reptile_MSDN(new String_Lex(myPath), myPath, new DataBaseSystem(myPath), page_limit,
+    let msdn = new Reptile_MSDN(new String_Lex('./data/' + myPath + '/_ExampleSentences.json'),
+        myPath, new DataBaseSystem(myPath), page_limit,
         "https://docs.microsoft.com/en-us/cpp/windows/desktop-applications-visual-cpp?view=vs-2019"
     )
     msdn.startWork();
 }
 console.time();
-//rep_msdn_example_sentences();
+rep_msdn_example_sentences();
 
 /**
  * 例句文件转字典
@@ -271,6 +293,6 @@ function Example_Sentences_2Dict(myPath, outputPath) {
     fs.writeFileSync(outputFullPath, result);
     cl("生成字典完成,路径:" + outputFullPath)
 }
-Example_Sentences_2Dict('msdn_cpp/', 'msdn_cpp/');
+//Example_Sentences_2Dict('msdn_cpp/', 'msdn_cpp/');
 
 module.exports = rep_msdn_example_sentences
